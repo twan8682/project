@@ -2,8 +2,10 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
 import android.widget.TextView;
 import android.annotation.SuppressLint;
@@ -19,12 +21,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+
 
 public class SubActivity extends AppCompatActivity {
     private Button mHomeBtn, mStartBtn, mPauseBtn;
     private TextView mTimeTextView;
     private Thread timeThread = null;
     private Boolean isRunning = true;
+    static Handler mBluetoothHandler;
+    final static int BT_REQUEST_ENABLE = 1;
+    final static int BT_MESSAGE_READ = 2;
+    final static int BT_CONNECTING_STATUS = 3;
 
 
     @Override
@@ -37,7 +48,7 @@ public class SubActivity extends AppCompatActivity {
         mStartBtn = (Button) findViewById(R.id.btn_start);
         mPauseBtn = (Button) findViewById(R.id.btn_pause);
         mTimeTextView = (TextView) findViewById(R.id.timeView);
-
+        TextView mtvReceiveData = (TextView) findViewById(R.id.tvReceiveData);
         mHomeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
 
@@ -70,7 +81,26 @@ public class SubActivity extends AppCompatActivity {
                 }
             }
         });
+
+        mBluetoothHandler = new Handler(){
+            public void handleMessage(android.os.Message msg){
+                if(msg.what == BT_MESSAGE_READ){
+                    String readMessage = null;
+                    try {
+                        readMessage = new String((byte[]) msg.obj, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    mtvReceiveData.setText(readMessage);
+
+                }
+                if(msg.what==BT_CONNECTING_STATUS){
+                    mtvReceiveData.setText((String) msg.obj);
+                }
+            }
+        };
     }
+
         @SuppressLint("HandlerLeak")
         Handler handler = new Handler() {
             @Override
@@ -115,7 +145,60 @@ public class SubActivity extends AppCompatActivity {
             }
         }
 
+    public static class ConnectedBluetoothThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
 
+        public ConnectedBluetoothThread(BluetoothSocket socket) {
+            mmSocket = socket;
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
 
+            try {
+                tmpIn = socket.getInputStream();
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) {
+       //         Toast.makeText(getApplicationContext(), "소켓 연결 중 오류가 발생했습니다.", Toast.LENGTH_LONG).show();
+            }
 
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+        }
+
+        public void run() {
+            byte[] buffer = new byte[1024];
+            int bytes;
+
+            while (true) {
+                try {
+                    bytes = mmInStream.available();
+                    if (bytes != 0) {
+                        bytes = mmInStream.available();
+                        bytes = mmInStream.read(buffer, 0, bytes);
+                        mBluetoothHandler.obtainMessage(BT_MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                    }
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        }
+
+        public void write(String str) {
+            byte[] bytes = str.getBytes();
+            try {
+                mmOutStream.write(bytes);
+            } catch (IOException e) {
+                //Toast.makeText(getApplicationContext(), "데이터 전송 중 오류가 발생했습니다.", Toast.LENGTH_LONG).show();
+            }
+        }
+
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                //Toast.makeText(getApplicationContext(), "소켓 해제 중 오류가 발생했습니다.", Toast.LENGTH_LONG).show();
+            }
+        }
+    };
     }
