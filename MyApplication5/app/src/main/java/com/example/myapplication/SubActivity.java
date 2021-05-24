@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 public class SubActivity extends AppCompatActivity {
@@ -149,6 +151,7 @@ public class SubActivity extends AppCompatActivity {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
+        private Queue<byte[]> bufferQueue = new LinkedList<byte[]>();
 
         public ConnectedBluetoothThread(BluetoothSocket socket) {
             mmSocket = socket;
@@ -174,9 +177,13 @@ public class SubActivity extends AppCompatActivity {
                 try {
                     bytes = mmInStream.available();
                     if (bytes != 0) {
-                        bytes = mmInStream.available();
-                        bytes = mmInStream.read(buffer, 0, bytes);
-                        mBluetoothHandler.obtainMessage(BT_MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                        bytes = mmInStream.read(buffer);
+                        bufferQueue.offer(new byte[bytes]);
+                        System.arraycopy(buffer, 0, bufferQueue.peek(), 0, bytes);
+                        mBluetoothHandler.obtainMessage(BT_MESSAGE_READ, bytes, -1, bufferQueue.poll()).sendToTarget();
+//                      bytes = mmInStream.available();
+//                      bytes = mmInStream.read(buffer, 0, bytes);
+//                      mBluetoothHandler.obtainMessage(BT_MESSAGE_READ, bytes, -1, buffer).sendToTarget();
                     }
                 } catch (IOException e) {
                     break;
