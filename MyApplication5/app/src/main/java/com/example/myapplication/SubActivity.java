@@ -51,6 +51,7 @@ public class SubActivity extends AppCompatActivity {
         mPauseBtn = (Button) findViewById(R.id.btn_pause);
         mTimeTextView = (TextView) findViewById(R.id.timeView);
         TextView mtvReceiveData = (TextView) findViewById(R.id.tvReceiveData);
+        TextView mtvReceiveData2 = (TextView) findViewById(R.id.tvReceiveData2);
         mHomeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
 
@@ -70,6 +71,7 @@ public class SubActivity extends AppCompatActivity {
 
                 timeThread = new Thread(new timeThread());
                 timeThread.start();
+
             }
         });
         mPauseBtn.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +95,30 @@ public class SubActivity extends AppCompatActivity {
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                     }
-                    mtvReceiveData.setText(readMessage);
+                    if(readMessage.contains("1"))
+                    {
+                        mtvReceiveData.setText("간격좁혀주세요");
+                    }
+                    if(readMessage.contains("2"))
+                    {
+                        mtvReceiveData.setText("정상입니다.");
+                    }
+                    if(readMessage.contains("3"))
+                    {
+                        mtvReceiveData.setText("넓혀주세요");
+                    }
+                    if(readMessage.contains("4"))
+                    {
+                        mtvReceiveData2.setText("기울기 정상");
+                    }
+                    if(readMessage.contains("5"))
+                    {
+                        mtvReceiveData2.setText("발뒤꿈치부터 닿으세요");
+                    }
+                    if(readMessage.contains("6"))
+                    {
+                        mtvReceiveData2.setText("기울기 조정 완료");
+                    }
 
                 }
                 if(msg.what==BT_CONNECTING_STATUS){

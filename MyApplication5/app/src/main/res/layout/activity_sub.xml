@@ -50,11 +50,26 @@
     <TextView
         android:id="@+id/tvReceiveData"
         android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_height="100dp"
         android:layout_marginStart="60dp"
         android:layout_marginLeft="60dp"
         android:layout_marginTop="-400dp"
         android:text="Receive"
+        android:textColor="#ffff0000"
+        android:textSize="40sp"
+        app:layout_constraintStart_toStartOf="@+id/btnSendData"
+        app:layout_constraintTop_toBottomOf="@+id/btnSendData" />
+
+    <TextView
+        android:id="@+id/tvReceiveData2"
+        android:layout_width="300dp"
+        android:layout_height="142dp"
+        android:layout_marginStart="60dp"
+        android:layout_marginLeft="60dp"
+        android:layout_marginTop="10dp"
+        android:text="Receive"
+        android:textColor="#0054FF"
+        android:textSize="40sp"
         app:layout_constraintStart_toStartOf="@+id/btnSendData"
         app:layout_constraintTop_toBottomOf="@+id/btnSendData" />
 
